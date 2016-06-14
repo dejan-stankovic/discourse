@@ -1,18 +1,20 @@
-module("Discourse.Markdown", {
-  setup: function() {
-    Discourse.SiteSettings.traditional_markdown_linebreaks = false;
-    Discourse.SiteSettings.default_code_lang = "auto";
-  }
-});
+import PrettyText from 'discourse/lib/pretty-text';
 
-var cooked = function(input, expected, text) {
-  var result = Discourse.Markdown.cook(input, {sanitize: true});
+module("Discourse.Markdown");
+
+function create() {
+  return new PrettyText({ traditionalMarkdownLinebreaks: false,
+                          defaultCodeLang: 'auto',
+                          sanitize: true });
+}
+
+function cooked(input, expected, text) {
+  const result = create().cook(input);
   expected = expected.replace(/\/>/g, ">");
-  // result = result.replace("/>", ">");
   equal(result, expected, text);
 };
 
-var cookedOptions = function(input, opts, expected, text) {
+function cookedOptions(input, opts, expected, text) {
   equal(Discourse.Markdown.cook(input, opts), expected, text);
 };
 
@@ -35,18 +37,11 @@ test("Nested bold and italics", function() {
 });
 
 test("Traditional Line Breaks", function() {
-  var input = "1\n2\n3";
+  const input = "1\n2\n3";
   cooked(input, "<p>1<br/>2<br/>3</p>", "automatically handles trivial newlines");
 
-  var traditionalOutput = "<p>1\n2\n3</p>";
-
-  cookedOptions(input,
-                {traditional_markdown_linebreaks: true},
-                traditionalOutput,
-                "It supports traditional markdown via an option");
-
-  Discourse.SiteSettings.traditional_markdown_linebreaks = true;
-  cooked(input, traditionalOutput, "It supports traditional markdown via a Site Setting");
+  const result = new PrettyText({ traditionalMarkdownLinebreaks: true }).cook(input);
+  equal(result, "<p>1\n2\n3</p>");
 });
 
 test("Unbalanced underscores", function() {
